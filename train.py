@@ -43,16 +43,14 @@ class GradualWarmupScheduler(_LRScheduler):
         optimizer (torch.optim.Optimizer): Wrapped optimizer.
         multiplier (float): The target LR is the initial LR multiplied by this value.
         total_epoch (int): Number of epochs for the warmup phase.
-        after_scheduler (_LRScheduler, optional): Scheduler to use after the warmup phase.
 
     Methods:
         get_lr: Calculates the LR for the current epoch.
         step: Updates the LR at the end of each epoch.
     """
-    def __init__(self, optimizer: torch.optim.Optimizer, multiplier: float, total_epoch: int, after_scheduler=None):
+    def __init__(self, optimizer: torch.optim.Optimizer, multiplier: float, total_epoch: int):
         self.multiplier = multiplier
         self.total_epoch = total_epoch
-        self.after_scheduler = after_scheduler
         self.finished = False
         super(GradualWarmupScheduler, self).__init__(optimizer)
 
@@ -60,32 +58,29 @@ class GradualWarmupScheduler(_LRScheduler):
         """
         Computes the learning rate for the current epoch.
 
+        If the current epoch is within the warmup period, the learning rate is calculated as a linear
+        interpolation between the initial learning rate and the target learning rate. After the warmup
+        period, the learning rate is set to the target learning rate.
+
         Returns:
             list: List of learning rates for each parameter group.
         """
         if self.last_epoch < self.total_epoch:
-            return [base_lr * (1 + self.last_epoch / self.total_epoch * (self.multiplier - 1)) for base_lr in self.base_lrs]
-        if self.after_scheduler:
-            if not self.finished:
-                self.after_scheduler.base_lrs = [base_lr * self.multiplier for base_lr in self.base_lrs]
-                self.finished = True
-            return self.after_scheduler.get_last_lr()
+            return [base_lr * (1 + self.last_epoch / self.total_epoch *
+                               (self.multiplier - 1)) for base_lr in self.base_lrs]
         return [base_lr * self.multiplier for base_lr in self.base_lrs]
 
     def step(self, epoch=None):
         """
         Updates the learning rate.
 
+        This method should be called at the end of each epoch to update the learning rate.
+        It internally calls the _LRScheduler's step method to update the learning rate.
+
         Args:
-            epoch (int, optional): Current epoch number.
+            epoch (int): The current epoch number.
         """
-        if self.finished and self.after_scheduler:
-            if epoch is None:
-                self.after_scheduler.step(None)
-            else:
-                self.after_scheduler.step(epoch - self.total_epoch)
-        else:
-            super(GradualWarmupScheduler, self).step(epoch)
+        super(GradualWarmupScheduler, self).step(epoch)
 
 def train(model: torch.nn.Module,
           device: torch.device,
