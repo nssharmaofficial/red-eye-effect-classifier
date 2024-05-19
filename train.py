@@ -49,7 +49,7 @@ class GradualWarmupScheduler(_LRScheduler):
         get_lr: Calculates the LR for the current epoch.
         step: Updates the LR at the end of each epoch.
     """
-    def __init__(self, optimizer: torch.optim.Adam, multiplier: int, total_epoch: int, after_scheduler=None):
+    def __init__(self, optimizer: torch.optim.Optimizer, multiplier: float, total_epoch: int, after_scheduler=None):
         self.multiplier = multiplier
         self.total_epoch = total_epoch
         self.after_scheduler = after_scheduler
@@ -63,17 +63,14 @@ class GradualWarmupScheduler(_LRScheduler):
         Returns:
             list: List of learning rates for each parameter group.
         """
-        if self.last_epoch >= self.total_epoch:
-            if self.after_scheduler:
-                if not self.finished:
-                    self.after_scheduler.base_lrs = [base_lr * self.multiplier
-                                                     for base_lr in self.base_lrs]
-                    self.finished = True
-                return self.after_scheduler.get_last_lr()
-            return [base_lr * self.multiplier for base_lr in self.base_lrs]
-        else:
-            return ([base_lr * ((self.multiplier - 1) * self.last_epoch /
-                                self.total_epoch + 1) for base_lr in self.base_lrs])
+        if self.last_epoch < self.total_epoch:
+            return [base_lr * (1 + self.last_epoch / self.total_epoch * (self.multiplier - 1)) for base_lr in self.base_lrs]
+        if self.after_scheduler:
+            if not self.finished:
+                self.after_scheduler.base_lrs = [base_lr * self.multiplier for base_lr in self.base_lrs]
+                self.finished = True
+            return self.after_scheduler.get_last_lr()
+        return [base_lr * self.multiplier for base_lr in self.base_lrs]
 
     def step(self, epoch=None):
         """
@@ -89,13 +86,13 @@ class GradualWarmupScheduler(_LRScheduler):
                 self.after_scheduler.step(epoch - self.total_epoch)
         else:
             super(GradualWarmupScheduler, self).step(epoch)
+        print(f"Learning rate after step {self.last_epoch}: {self.optimizer.param_groups[0]['lr']}")  # Debug print
 
 def train(model: torch.nn.Module,
           device: torch.device,
           train_loader: DataLoader,
           criterion: torch.nn.CrossEntropyLoss,
           optimizer: torch.optim.Adam,
-          scheduler: GradualWarmupScheduler,
           epoch: int,
           total_epochs: int):
     """
@@ -123,7 +120,6 @@ def train(model: torch.nn.Module,
         loss = criterion(outputs, labels.view(-1))
         loss.backward()
         optimizer.step()
-        scheduler.step()
 
         if i % 10 == 0:
             acc = calculate_accuracy(outputs, labels)
@@ -229,17 +225,15 @@ if __name__ == '__main__':
     print('Setting up the model...')
     cnn = CNN().to(device)
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(params=list(cnn.parameters()), lr=setup.LR)
 
     print('Setup warmup scheduler...')
     warmup_epochs = 5
     target_lr = setup.LR
-    warmup_lr = target_lr * 0.1
-    after_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    warmup_lr = target_lr*0.1
+    optimizer = torch.optim.Adam(params=list(cnn.parameters()), lr=warmup_lr)
     scheduler = GradualWarmupScheduler(optimizer,
                                        multiplier=target_lr / warmup_lr,
-                                       total_epoch=warmup_epochs,
-                                       after_scheduler=after_scheduler)
+                                       total_epoch=warmup_epochs)
 
     print("Beginning training...")
     training_losses, val_losses = [], []
@@ -249,7 +243,7 @@ if __name__ == '__main__':
         current_lr = optimizer.param_groups[0]['lr']
         print(f'Epoch {epoch+1}/{setup.EPOCHS} started. Current learning rate: {current_lr:.6f}')
 
-        avg_train_loss = train(cnn, device, train_loader, criterion, optimizer, scheduler, epoch, setup.EPOCHS)
+        avg_train_loss = train(cnn, device, train_loader, criterion, optimizer, epoch, setup.EPOCHS)
         avg_val_loss, val_images = evaluate(cnn, device, val_loader, criterion, epoch, setup.EPOCHS)
 
         training_losses.append(avg_train_loss)
@@ -260,6 +254,8 @@ if __name__ == '__main__':
 
         torch.cuda.empty_cache()
         gc.collect()
+
+        scheduler.step()
 
         # save model after every epoch
         torch.save(cnn.state_dict(), f"{checkpoints_dir}/CNN-B{setup.BATCH}-LR-{setup.LR}-E{epoch+1}.pt")

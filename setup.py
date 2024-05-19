@@ -19,5 +19,5 @@ class Setup(object):
         self.whole_size = (32,32)
         self.BATCH = 8
         self.DEVICE = torch.device("cuda:0")
-        self.LR = 0.001
+        self.LR = 0.01
         self.EPOCHS = 30
