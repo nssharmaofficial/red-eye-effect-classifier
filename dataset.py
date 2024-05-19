@@ -69,7 +69,7 @@ class Dataset(data.Dataset):
         normal_paths (list of str): List of file paths for 'normal' eye images.
     """
 
-    def __init__(self, red_paths, normal_paths):
+    def __init__(self, red_paths: list[str], normal_paths: list[str]):
 
         self.transform = transforms.Compose([
             transforms.ToTensor(),
@@ -136,7 +136,7 @@ def denormalize(image: torch.Tensor):
     )
     return (inv_normalize(image) * 255.).type(torch.uint8).permute(1, 2, 0).numpy()
 
-def get_data_loader(dataset, batch_size):
+def get_data_loader(dataset: Dataset, batch_size: int):
     """
     Creates a DataLoader with a WeightedRandomSampler to handle class imbalance.
 
