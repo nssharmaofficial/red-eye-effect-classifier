@@ -199,9 +199,9 @@ if __name__ == '__main__':
     for i in range(10):  # Display 5 batches
         img, label = next(iter(train_loader))
         print(f'Normal: {sum(label==0).item()}, Red: {sum(label==1).item()}')
-        for idx, (red, label) in enumerate(zip(imgs, labels)):
-            red = denormalize(red)
-            plt.imshow(red)
+        for idx, (img, label) in enumerate(zip(imgs, labels)):
+            img = denormalize(img)
+            plt.imshow(img)
             plt.title(f'label: {label}')
             plt.savefig(os.path.join(output_dir, f"batch_{i}_image_{idx}.png"))
             plt.close()
