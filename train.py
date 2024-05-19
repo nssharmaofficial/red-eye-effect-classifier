@@ -265,7 +265,7 @@ if __name__ == '__main__':
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(f"{plots_dir}/CNN-B{setup.BATCH}-L-{setup.LR}-E{setup.EPOCHS}.jpg")
+    plt.savefig(f"{plots_dir}/CNN-B{setup.BATCH}-L-{setup.LR}-E{setup.EPOCHS}.png")
 
     # Plot and save validation images with true and predicted labels
     plot_and_save_images(all_val_images, plots_dir, grid_size=(10, 10))
