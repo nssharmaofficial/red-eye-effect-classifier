@@ -86,7 +86,6 @@ class GradualWarmupScheduler(_LRScheduler):
                 self.after_scheduler.step(epoch - self.total_epoch)
         else:
             super(GradualWarmupScheduler, self).step(epoch)
-        print(f"Learning rate after step {self.last_epoch}: {self.optimizer.param_groups[0]['lr']}")  # Debug print
 
 def train(model: torch.nn.Module,
           device: torch.device,
@@ -241,7 +240,7 @@ if __name__ == '__main__':
 
     for epoch in range(setup.EPOCHS):
         current_lr = optimizer.param_groups[0]['lr']
-        print(f'Epoch {epoch+1}/{setup.EPOCHS} started. Current learning rate: {current_lr:.6f}')
+        print(f'Epoch {epoch+1}/{setup.EPOCHS} started. Current learning rate: {current_lr:.4f}')
 
         avg_train_loss = train(cnn, device, train_loader, criterion, optimizer, epoch, setup.EPOCHS)
         avg_val_loss, val_images = evaluate(cnn, device, val_loader, criterion, epoch, setup.EPOCHS)
