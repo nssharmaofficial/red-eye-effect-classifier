@@ -2,7 +2,14 @@
 
 The goal of the assignment is to create a classifier of human eye images which will distinguish images with the red-eye effect.
 
-## Development environment
+## Contents
+
+1. [Environment setup](#environment-setup)
+1. [Dataset](#dataset)
+1. [Model](#model)
+1. [Training](#training)
+
+## Environment setup
 
 To build a Docker image:
 
@@ -29,6 +36,8 @@ The dataset contains:
 
 The `dataset.py` script handles the loading, transforming, and batching of images. Running it sets up the dataset paths, creates a custom dataset and data loader with transformations and visualizes some batches of images by saving them to the `dataset_output_images` directory.
 
+![Example of `normal` eye](readme_images/example_normal_eye.png) ![Example of `red` eye](readme_images/example_red_eye.png)
+
 ## Model
 
 The CNN is structured with four convolutional layers followed by two fully connected layers. Each convolutional layer is paired with batch normalization and a LeakyReLU activation function. A dropout layer is included before the final fully connected layer to reduce the risk of overfitting.
@@ -45,3 +54,24 @@ Out:  torch.Size([8, 2])
 ```
 
 The `model.py` contains the definition of a CNN designed to classify images into `normal` and `red` eye categories. Running it initializes the setup, loads the datasets, creates a DataLoader, and then instantiates the CNN model. It prints the number of trainable parameters and the input and output size for a batch of images.
+
+## Training
+
+To start training the model, run the `train.py` script. The script:
+
+The model weights are saved in `/checkpoints` and the validation images with true and predicted labels are saved at the end of training in `/training_output_images`.
+
+After training the model with learning rate of 0.01 and 30 epochs:
+
+![Predicted validation images](readme_images/predicted_validation_images.png)
+
+We implemented [learning rate gradual warmup](https://arxiv.org/pdf/1706.02677). Gradual warmup is a technique used to improve the stability of the training process by slowly increasing the learning rate from a small value to a target value over a specified number of epochs. In this project, the `GradualWarmupScheduler` class is implemented to handle this warmup phase. The learning rate is gradually increased to the target value over the first few epochs, and then the normal learning rate schedule resumes.
+
+For target LR of 0.01 the LR during first 5 epochs with warmup LR of 0.001 is as follows:
+
+- epoch 1: 0.001 (warmup learning rate)
+- epoch 2: 0.0028
+- epoch 3: 0.0046
+- epoch 4: 0.0064
+- epoch 5: 0.0082
+- epoch 6: 0.01 (target learning rate)

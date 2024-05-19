@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from dataset import *
-from setup import *
+from dataset import get_paths, get_data_loader, Dataset
+from setup import Setup
 
 
 class CNN(nn.Module):
