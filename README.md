@@ -36,9 +36,7 @@ The dataset contains:
 
 The `dataset.py` script handles the loading, transforming, and batching of images. Running it sets up the dataset paths, creates a custom dataset and data loader with transformations and visualizes some batches of images by saving them to the `dataset_output_images` directory.
 
-![Example of `normal` eye](readme_images/example_normal_eye.png)
-![Example of `red` eye](readme_images/example_red_eye.png)
-
+![Example of `normal` eye](readme_images/example_normal_eye.png) ![Example of `red` eye](readme_images/example_red_eye.png)
 
 ## Model
 
