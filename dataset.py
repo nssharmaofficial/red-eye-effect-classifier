@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.utils.data as data
 from PIL import Image
-from setup import Setup
+from config import Config
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from torch.utils.data.sampler import WeightedRandomSampler
@@ -13,7 +13,7 @@ def get_paths():
     """
     Retrieves file paths for training and test datasets for 'normal' and 'red' eye images.
 
-    This function navigates through the directory structure defined in the Setup object to
+    This function navigates through the directory structure defined in the Config object to
     gather the file paths for the images used in training and testing the model. It segregates
     the images into 'normal' and 'red' categories for both training and test datasets.
 
@@ -24,17 +24,17 @@ def get_paths():
             - normal_test_paths (list of str): Paths to 'normal' eye test images.
             - red_test_paths (list of str): Paths to 'red' eye test images.
     """
-    setup = Setup()
+    config = Config()
 
     normal_train_paths = []
     red_train_paths = []
     normal_test_paths = []
     red_test_paths = []
 
-    normal_train_folder = os.path.join(setup.root, 'data', 'train', 'normal')
-    red_train_folder = os.path.join(setup.root, 'data', 'train', 'red')
-    normal_test_folder = os.path.join(setup.root, 'data', 'test', 'normal')
-    red_test_folder = os.path.join(setup.root, 'data', 'test', 'red')
+    normal_train_folder = os.path.join(config.root, 'data', 'train', 'normal')
+    red_train_folder = os.path.join(config.root, 'data', 'train', 'red')
+    normal_test_folder = os.path.join(config.root, 'data', 'test', 'normal')
+    red_test_folder = os.path.join(config.root, 'data', 'test', 'red')
 
     # get training set
     for img_name in os.listdir(normal_train_folder):
@@ -177,7 +177,7 @@ if __name__ == '__main__':
     DataLoader objects, and then iterates through the DataLoader to save batches of images
     for visualization.
     """
-    setup = Setup()
+    config = Config()
 
     normal_train_paths, red_train_paths, normal_test_paths, red_test_paths = get_paths()
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
     print('Size of red test set: ', len(red_test_paths))
 
     train_dataset = Dataset(red_train_paths, normal_train_paths)
-    train_loader = get_data_loader(train_dataset, batch_size=setup.BATCH)
+    train_loader = get_data_loader(train_dataset, batch_size=config.BATCH)
 
     imgs, labels = next(iter(train_loader))
 

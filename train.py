@@ -7,7 +7,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 from dataset import denormalize, get_paths, get_data_loader, Dataset
 from matplotlib import pyplot as plt
 from model import CNN
-from setup import Setup
+from config import Config
 
 def calculate_accuracy(output: torch.Tensor, labels: torch.Tensor):
     """
@@ -20,13 +20,11 @@ def calculate_accuracy(output: torch.Tensor, labels: torch.Tensor):
     Returns:
         float: The accuracy of the model's predictions.
     """
-    # Get the predicted class by taking the argmax over the output logits
     _, preds = torch.max(output, dim=1)
 
     # Ensure labels are the same shape as preds
     labels = labels.view(-1)
 
-    # Calculate the accuracy
     correct = torch.sum(preds == labels).item()
     accuracy = correct / labels.size(0)
     return accuracy*100
@@ -187,7 +185,7 @@ def plot_and_save_images(images: torch.Tensor, output_dir: str, grid_size=(5, 10
         ax.set_title(f"True: {true_label}, Pred: {pred_label}", color=color)
         ax.axis('off')
     plt.tight_layout()
-    plt.savefig(os.path.join(output_dir, f'CNN-B{setup.BATCH}-L-{setup.LR}-E{setup.EPOCHS}-validation_images.png'))
+    plt.savefig(os.path.join(output_dir, f'CNN-B{config.BATCH}-L-{config.LR}-E{config.EPOCHS}-validation_images.png'))
     plt.close()
 
 if __name__ == '__main__':
@@ -201,8 +199,8 @@ if __name__ == '__main__':
     5. Saves the model checkpoints and plots the training and validation losses.
     6. Plots and saves the validation images with true and predicted labels at the end of training.
     """
-    setup = Setup()
-    device = setup.DEVICE
+    config = Config()
+    device = config.DEVICE
 
     checkpoints_dir = "checkpoints"
     plots_dir = "training_output_images"
@@ -212,38 +210,33 @@ if __name__ == '__main__':
     print('Loading dataset...')
     normal_train_paths, red_train_paths, normal_test_paths, red_test_paths = get_paths()
     train_dataset = Dataset(red_train_paths, normal_train_paths)
-    train_loader = get_data_loader(train_dataset, batch_size=setup.BATCH)
+    train_loader = get_data_loader(train_dataset, batch_size=config.BATCH)
     val_dataset = Dataset(red_test_paths, normal_test_paths)
-    val_loader = get_data_loader(val_dataset, batch_size=setup.BATCH)
+    val_loader = get_data_loader(val_dataset, batch_size=config.BATCH)
 
     print('Setting up the model...')
     cnn = CNN().to(device)
     criterion = torch.nn.CrossEntropyLoss()
-
-    print('Setup warmup scheduler...')
-    warmup_epochs = 5
-    target_lr = setup.LR
-    warmup_lr = target_lr*0.1
-    optimizer = torch.optim.Adam(params=list(cnn.parameters()), lr=warmup_lr)
+    optimizer = torch.optim.Adam(params=list(cnn.parameters()), lr=config.WARMUP_LR)
     scheduler = GradualWarmupScheduler(optimizer,
-                                       multiplier=target_lr / warmup_lr,
-                                       total_epoch=warmup_epochs)
+                                       multiplier=config.LR / config.WARMUP_LR,
+                                       total_epoch=config.WARMUP_EPOCHS)
 
     print("Beginning training...")
     training_losses, val_losses = [], []
     all_val_images = []
 
-    for epoch in range(setup.EPOCHS):
+    for epoch in range(config.EPOCHS):
         current_lr = optimizer.param_groups[0]['lr']
-        print(f'Epoch {epoch+1}/{setup.EPOCHS} started. Current learning rate: {current_lr:.4f}')
+        print(f'Epoch {epoch+1}/{config.EPOCHS} started. Current learning rate: {current_lr:.4f}')
 
-        avg_train_loss = train(cnn, device, train_loader, criterion, optimizer, epoch, setup.EPOCHS)
-        avg_val_loss, val_images = evaluate(cnn, device, val_loader, criterion, epoch, setup.EPOCHS)
+        avg_train_loss = train(cnn, device, train_loader, criterion, optimizer, epoch, config.EPOCHS)
+        avg_val_loss, val_images = evaluate(cnn, device, val_loader, criterion, epoch, config.EPOCHS)
 
         training_losses.append(avg_train_loss)
         val_losses.append(avg_val_loss)
 
-        if epoch+1 == setup.EPOCHS:
+        if epoch+1 == config.EPOCHS:
             all_val_images.extend(val_images)
 
         torch.cuda.empty_cache()
@@ -252,7 +245,7 @@ if __name__ == '__main__':
         scheduler.step()
 
         # save model after every epoch
-        torch.save(cnn.state_dict(), f"{checkpoints_dir}/CNN-B{setup.BATCH}-LR-{setup.LR}-E{epoch+1}.pt")
+        torch.save(cnn.state_dict(), f"{checkpoints_dir}/CNN-B{config.BATCH}-LR-{config.LR}-E{epoch+1}.pt")
 
     plt.plot(training_losses, label='Training Loss')
     plt.plot(val_losses, label='Validation Loss')
@@ -260,7 +253,7 @@ if __name__ == '__main__':
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig(f"{plots_dir}/CNN-B{setup.BATCH}-L-{setup.LR}-E{setup.EPOCHS}.png")
+    plt.savefig(f"{plots_dir}/CNN-B{config.BATCH}-L-{config.LR}-E{config.EPOCHS}.png")
 
     # Plot and save validation images with true and predicted labels
     plot_and_save_images(all_val_images, plots_dir, grid_size=(10, 10))

@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from dataset import get_paths, get_data_loader, Dataset
-from setup import Setup
+from config import Config
 
 
 class CNN(nn.Module):
@@ -68,11 +68,13 @@ class CNN(nn.Module):
         # print('Conv4: ', x.size())
 
         x = x.view(x.size(0), -1)
+        # print('OutConv: ', x.size())
 
         x = F.leaky_relu(self.fc1(x))
+        # print('Lin1: ', x.size())
         x = self.dropout(x)
         x = self.fc2(x)
-        # print('Out: ', x.size())
+        # print('Lin2: ', x.size())
         return F.log_softmax(x, dim=1)
 
 if __name__ == '__main__':
@@ -82,12 +84,12 @@ if __name__ == '__main__':
     and the output size for a batch of images.
     """
 
-    setup = Setup()
+    config = Config()
 
     normal_train_paths, red_train_paths, normal_test_paths, red_test_paths = get_paths()
 
     train_dataset = Dataset(red_train_paths, normal_train_paths)
-    train_loader = get_data_loader(train_dataset, batch_size=setup.BATCH)
+    train_loader = get_data_loader(train_dataset, batch_size=config.BATCH)
 
     imgs, labels = next(iter(train_loader))
 
@@ -96,6 +98,6 @@ if __name__ == '__main__':
     output = cnn.forward(imgs)
 
     # Print info
-    print('\nBatch size: ', setup.BATCH)
+    print('\nBatch size: ', config.BATCH)
     print('Images size: ', imgs.size())         # (batch, 3, 32, 32)
     print('CNN output size: ', output.size())   # (batch, 2)
