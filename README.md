@@ -67,7 +67,7 @@ The [`model.py`](/model.py) contains the definition of a CNN designed to classif
 
 ## Training and evaluation
 
-To start training the model, run the [`train.py`](/train.py) script. The script:
+To start training the model, run the [`train.py`](/train.py) script.
 
 We implemented [learning rate gradual warmup](https://arxiv.org/pdf/1706.02677). Gradual warmup is a technique used to improve the stability of the training process by slowly increasing the learning rate from a small value to a target value over a specified number of epochs. In this project, the `GradualWarmupScheduler` class is implemented to handle this warmup phase. The learning rate is gradually increased to the target value over the first few epochs, and then the normal learning rate schedule resumes.
 
@@ -82,7 +82,7 @@ For target LR of 0.01 the LR during first 5 epochs with warmup LR of 0.001 is as
 
 The model weights are saved in `/checkpoints` and the validation images with true and predicted labels are saved at the end of training in `/training_output_images`.
 
-After training the model with [configuration](/config.py):
+The validation images with true and predicted labels after training the model with [configuration](/config.py):
 
 ```python
 self.BATCH = 8
