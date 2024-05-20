@@ -9,7 +9,9 @@ class Config(object):
         root (str): The root directory of the project. Defaults to the current working directory.
         BATCH (int): The batch size for the DataLoader.
         DEVICE (torch.device): The device to run the model on.
-        LR (float): The learning rate for the optimizer.
+        LR (float): The target learning rate for the optimizer.
+        WARMUP_LR (float): The beggining learning rate which will be gradually increased to LR
+        WARMUP_EPOCHS (int): The number of epochs for gradually increasing the learning rate.
         EPOCHS (int): The number of epochs for training the model.
     """
     def __init__(self) -> None:
