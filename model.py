@@ -68,11 +68,13 @@ class CNN(nn.Module):
         # print('Conv4: ', x.size())
 
         x = x.view(x.size(0), -1)
+        # print('OutConv: ', x.size())
 
         x = F.leaky_relu(self.fc1(x))
+        # print('Lin1: ', x.size())
         x = self.dropout(x)
         x = self.fc2(x)
-        # print('Out: ', x.size())
+        # print('Lin2: ', x.size())
         return F.log_softmax(x, dim=1)
 
 if __name__ == '__main__':
