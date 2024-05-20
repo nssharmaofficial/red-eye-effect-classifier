@@ -2,25 +2,33 @@
 
 The goal of the assignment is to create a classifier of human eye images which will distinguish images with the red-eye effect.
 
+You can run the inference of the trained model on [🤗 Hugging Face - RedEyeClassifier](https://huggingface.co/spaces/nssharmaofficial/RedEyeClassifier).
+
 ## Contents
 
 1. [Environment setup](#environment-setup)
 1. [Dataset](#dataset)
 1. [Model](#model)
-1. [Training](#training)
+1. [Training and evaluation](#training-and-evaluation)
 
 ## Environment setup
 
-To build a Docker image:
+You can pull the Docker image from [Docker hub](https://hub.docker.com/repository/docker/nssharma/red-eye-effect-classification/tags):
 
 ```bash
-docker build -t red-eye-effect-classification/python:v1 -f Dockerfile .
+docker pull nssharma/red-eye-effect-classification:v1
+```
+
+Or you can also build a Docker image locally:
+
+```bash
+docker build -t nssharma/red-eye-effect-classification:v1 -f Dockerfile .
 ```
 
 To run a Docker container:
 
 ```bash
-docker run --gpus device=0 -it --entrypoint bash -p 8888:8888 -v "$(pwd)":/red-eye-effect-classification red-eye-effect-classification/python:v1
+docker run --gpus device=0 -it --entrypoint bash -p 8888:8888 -v "$(pwd)":/red-eye-effect-classification nssharma/red-eye-effect-classification:v1
 ```
 
 ## Dataset
@@ -34,7 +42,7 @@ The dataset contains:
 - 50 `normal` test images (label = 0)
 - 50 `red` test images (label = 1)
 
-The `dataset.py` script handles the loading, transforming, and batching of images. Running it sets up the dataset paths, creates a custom dataset and data loader with transformations and visualizes some batches of images by saving them to the `dataset_output_images` directory.
+The [`dataset.py`](/dataset.py) script handles the loading, transforming, and batching of images. Running it sets up the dataset paths, creates a custom dataset and data loader with transformations and visualizes some batches of images by saving them to the `dataset_output_images` directory.
 
 ![Example of `normal` eye](readme_images/example_normal_eye.png) ![Example of `red` eye](readme_images/example_red_eye.png)
 
@@ -50,20 +58,16 @@ Conv1:  torch.Size([8, 8, 16, 16])
 Conv2:  torch.Size([8, 16, 8, 8])
 Conv3:  torch.Size([8, 32, 4, 4])
 Conv4:  torch.Size([8, 64, 2, 2])
-Out:  torch.Size([8, 2])
+OutConv:  torch.Size([8, 256])
+Lin1:  torch.Size([8, 32])
+Lin2:  torch.Size([8, 2])
 ```
 
-The `model.py` contains the definition of a CNN designed to classify images into `normal` and `red` eye categories. Running it initializes the setup, loads the datasets, creates a DataLoader, and then instantiates the CNN model. It prints the number of trainable parameters and the input and output size for a batch of images.
+The [`model.py`](/model.py) contains the definition of a CNN designed to classify images into `normal` and `red` eye categories. Running it initializes the setup, loads the datasets, creates a DataLoader, and then instantiates the CNN model. It prints the number of trainable parameters and the input and output size for a batch of images.
 
-## Training
+## Training and evaluation
 
-To start training the model, run the `train.py` script. The script:
-
-The model weights are saved in `/checkpoints` and the validation images with true and predicted labels are saved at the end of training in `/training_output_images`.
-
-After training the model with learning rate of 0.01 and 30 epochs:
-
-![Predicted validation images](readme_images/predicted_validation_images.png)
+To start training the model, run the [`train.py`](/train.py) script. The script:
 
 We implemented [learning rate gradual warmup](https://arxiv.org/pdf/1706.02677). Gradual warmup is a technique used to improve the stability of the training process by slowly increasing the learning rate from a small value to a target value over a specified number of epochs. In this project, the `GradualWarmupScheduler` class is implemented to handle this warmup phase. The learning rate is gradually increased to the target value over the first few epochs, and then the normal learning rate schedule resumes.
 
@@ -75,3 +79,17 @@ For target LR of 0.01 the LR during first 5 epochs with warmup LR of 0.001 is as
 - epoch 4: 0.0064
 - epoch 5: 0.0082
 - epoch 6: 0.01 (target learning rate)
+
+The model weights are saved in `/checkpoints` and the validation images with true and predicted labels are saved at the end of training in `/training_output_images`.
+
+After training the model with [configuration](/config.py):
+
+```python
+self.BATCH = 8
+self.LR = 0.01
+self.WARMUP_LR = self.LR*0.1
+self.WARMUP_EPOCHS = 5
+self.EPOCHS = 30
+```
+
+![Predicted validation images](readme_images/predicted_validation_images.png)
