@@ -209,9 +209,9 @@ if __name__ == '__main__':
 
     print('Loading dataset...')
     normal_train_paths, red_train_paths, normal_test_paths, red_test_paths = get_paths()
-    train_dataset = Dataset(red_train_paths, normal_train_paths)
+    train_dataset = Dataset(red_train_paths, normal_train_paths, type="train")
     train_loader = get_data_loader(train_dataset, batch_size=config.BATCH)
-    val_dataset = Dataset(red_test_paths, normal_test_paths)
+    val_dataset = Dataset(red_test_paths, normal_test_paths, type="val")
     val_loader = get_data_loader(val_dataset, batch_size=config.BATCH)
 
     print('Setting up the model...')

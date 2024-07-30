@@ -75,7 +75,7 @@ class CNN(nn.Module):
         x = self.dropout(x)
         x = self.fc2(x)
         # print('Lin2: ', x.size())
-        return F.log_softmax(x, dim=1)
+        return x
 
 if __name__ == '__main__':
     """
@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
     normal_train_paths, red_train_paths, normal_test_paths, red_test_paths = get_paths()
 
-    train_dataset = Dataset(red_train_paths, normal_train_paths)
+    train_dataset = Dataset(red_train_paths, normal_train_paths, type="train")
     train_loader = get_data_loader(train_dataset, batch_size=config.BATCH)
 
     imgs, labels = next(iter(train_loader))

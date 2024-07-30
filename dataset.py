@@ -67,19 +67,29 @@ class Dataset(data.Dataset):
     Args:
         red_paths (list of str): List of file paths for 'red' eye images.
         normal_paths (list of str): List of file paths for 'normal' eye images.
+        type (str): Specifies whether the dataset is for training or evaluation. 
+                Should be either 'train' or 'val'.
     """
 
-    def __init__(self, red_paths: list[str], normal_paths: list[str]):
+    def __init__(self, red_paths: list[str],
+                 normal_paths: list[str],
+                 type: str["train", "val"]):
 
-        self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Resize((32,32)),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(25),
-            transforms.RandomResizedCrop((32,32), scale=(0.8, 1.0)),
-            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-        ])
-
+        if type == "train":
+            self.transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize((32,32)),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(25),
+                transforms.RandomResizedCrop((32,32), scale=(0.8, 1.0)),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            ])
+        elif type == "val":
+            self.transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Resize((32,32)),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+            ])
         self.normal_paths = normal_paths
         self.red_paths = red_paths
         self.labels = [0] * len(normal_paths) + [1] * len(red_paths)
@@ -186,7 +196,7 @@ if __name__ == '__main__':
     print('Size of normal test set: ', len(normal_test_paths))
     print('Size of red test set: ', len(red_test_paths))
 
-    train_dataset = Dataset(red_train_paths, normal_train_paths)
+    train_dataset = Dataset(red_train_paths, normal_train_paths, type="train")
     train_loader = get_data_loader(train_dataset, batch_size=config.BATCH)
 
     imgs, labels = next(iter(train_loader))

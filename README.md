@@ -11,6 +11,24 @@ You can run the inference of the trained model on [🤗 Hugging Face - RedEyeCla
 1. [Model](#model)
 1. [Training and evaluation](#training-and-evaluation)
 
+## File structure
+
+```text
+Red-eye-effect-classification
+├── data/
+├── dataset_output_images/
+├── checkpoints/
+├── training_output_images/
+├── config.py
+├── dataset.py
+├── model.py
+├── train.py
+├── Dockerfile
+├── README.md
+├── readme_images/
+└── requirements.txt
+```
+
 ## Environment setup
 
 You can pull the Docker image from [Docker hub](https://hub.docker.com/repository/docker/nssharma/red-eye-effect-classification/tags):
@@ -45,6 +63,8 @@ The dataset contains:
 The [`dataset.py`](/dataset.py) script handles the loading, transforming, and batching of images. Running it sets up the dataset paths, creates a custom dataset and data loader with transformations and visualizes some batches of images by saving them to the `dataset_output_images` directory.
 
 ![Example of `normal` eye](readme_images/example_normal_eye.png) ![Example of `red` eye](readme_images/example_red_eye.png)
+
+You can preview and/or download the images from [🤗 Hugging Face - red-eye-effect dataset](https://huggingface.co/datasets/nssharmaofficial/red-eye-effect).
 
 ## Model
 
