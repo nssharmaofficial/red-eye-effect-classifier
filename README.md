@@ -1,4 +1,4 @@
-# Red eye effect classification
+# Red eye effect classifier
 
 The goal of the assignment is to create a classifier of human eye images which will distinguish images with the red-eye effect.
 
@@ -46,7 +46,7 @@ docker build -t nssharma/red-eye-effect-classification:v1 -f Dockerfile .
 To run a Docker container:
 
 ```bash
-docker run --gpus device=0 -it --entrypoint bash -p 8888:8888 -v "$(pwd)":/red-eye-effect-classification nssharma/red-eye-effect-classification:v1
+docker run --gpus device=0 -it --entrypoint bash -p 8888:8888 -v "$(pwd)":/red-eye-effect-classifier nssharma/red-eye-effect-classification:v1
 ```
 
 ## Dataset
